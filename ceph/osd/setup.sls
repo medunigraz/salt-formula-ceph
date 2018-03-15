@@ -15,7 +15,7 @@ ceph_osd_packages:
 
 {%- if osd.backend is defined %}
 
-{%- for backend_name, backend in osd.backend.iteritems() %}
+{%- for backend_name, backend in osd.backend.items() %}
 
 {%- for disk in backend.disks %}
 

@@ -33,9 +33,9 @@ ceph_enforce_crush_map:
 
 {%- if setup.pool is defined %}
 
-{%- for pool_name, pool in setup.pool.iteritems() %}
+{%- for pool_name, pool in setup.pool.items() %}
 
-{%- for option_name, option_value in pool.iteritems() %}
+{%- for option_name, option_value in pool.items() %}
 
 {%- if option_name in ['crush_rule'] %}
 

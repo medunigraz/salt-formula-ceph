@@ -6,11 +6,11 @@
 {%- set osds = {} -%}
 {%- set weights = {} -%}
 
-{%- for node_name, node_grains in salt['mine.get']('*', 'grains.items').iteritems() -%}
+{%- for node_name, node_grains in salt['mine.get']('*', 'grains.items').items() -%}
   {%- if node_grains.ceph.ceph_disk is defined -%}
     {# load OSDs and compute weight#}
     {%- set node_weight = [] -%}
-    {%- for osd_id, osd in node_grains.ceph.ceph_disk.iteritems() -%}
+    {%- for osd_id, osd in node_grains.ceph.ceph_disk.items() -%}
       {%- do osd.update({'host': node_grains.nodename }) -%}
       {%- do osds.update({osd_id: osd}) -%}
       {%- do node_weight.append(osd.weight|float) -%}
@@ -25,7 +25,7 @@
 {%- set _buckets = [] %}
 
 # tunables
-{%- for k, v in _crush.get('tunables', {}).iteritems() %}
+{%- for k, v in _crush.get('tunables', {}).items() %}
 tunable {{ k }} {{ v }}
 {%- endfor %}
 
@@ -56,7 +56,7 @@ host {{ bucket }} {
   id -{{ count[0] }}
   alg straw2
   hash 0
-  {%- for disk_id, disk in osds.iteritems() %}
+  {%- for disk_id, disk in osds.items() %}
   {%- if disk.host == bucket %}
   item osd.{{ disk_id }} weight {{ disk.weight }}
   {%- do weight.append(disk.weight|float) %}
@@ -81,7 +81,7 @@ host {{ bucket }} {
   # list children resources - {{ _crush.type[_typeid] }}
   {%- if _crush.type[_typeid] == 'host' %}
 
-    {%- for r_name, r in hosts.iteritems() %}
+    {%- for r_name, r in hosts.items() %}
       {%- if r.parent == resource.name %}
   item {{ r_name }} weight {{ r.weight }}
       {%- do weight.append(r.weight) %}
@@ -108,7 +108,7 @@ host {{ bucket }} {
 {%- endfor %}
 
 # rules
-{%- for rule_name, rule in _crush.get('rule', {}).iteritems() %}
+{%- for rule_name, rule in _crush.get('rule', {}).items() %}
 rule {{ rule_name }} {
   ruleset {{ rule.ruleset }}
   type {{ rule.type }}

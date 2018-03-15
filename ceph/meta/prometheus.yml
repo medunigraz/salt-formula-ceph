@@ -78,7 +78,7 @@ server:
         description: "Ceph commit latency too high."
 {% endraw %}
 {%- if setup.pool is defined %}
-{%- for pool_name, pool in setup.pool.iteritems() %}
+{%- for pool_name, pool in setup.pool.items() %}
     CephPoolUsedSpaceWarning{{pool_name|replace(".", "")|replace("-", "")}}:
 {% raw %}
       if: >-

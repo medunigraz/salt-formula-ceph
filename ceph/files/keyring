@@ -4,19 +4,19 @@
 
 [client.{{ name }}]
     key = {{ keyring.key }}
-    {%- for cap_name, cap in  keyring.caps.iteritems() %}
+    {%- for cap_name, cap in  keyring.caps.items() %}
     caps {{ cap_name }} = "{{ cap }}"
     {%- endfor %}
 
 {%- else %}
 
-{%- for name, keyring in node_grains.ceph.get("ceph_keyring", {}).iteritems() %}
+{%- for name, keyring in node_grains.ceph.get("ceph_keyring", {}).items() %}
 
 {%- if name == 'admin' %}
 
 [client.{{ name }}]
     key = {{ keyring.key }}
-    {%- for cap_name, cap in  keyring.get("caps", {}).iteritems() %}
+    {%- for cap_name, cap in  keyring.get("caps", {}).items() %}
     caps {{ cap_name }} = "{{ cap }}"
     {%- endfor %}
 

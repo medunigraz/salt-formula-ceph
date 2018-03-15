@@ -104,13 +104,13 @@ ceph_user:
     - user: ceph_user
     - pkg: ceph_backup_server_packages
 
-{%- for key_name, key in backup.server.key.iteritems() %}
+{%- for key_name, key in backup.server.key.items() %}
 
 {%- if key.get('enabled', False) %}
 
 {%- set clients = [] %}
 {%- if backup.restrict_clients %}
-  {%- for node_name, node_grains in salt['mine.get']('*', 'grains.items').iteritems() %}
+  {%- for node_name, node_grains in salt['mine.get']('*', 'grains.items').items() %}
     {%- if node_grains.get('ceph_backup', {}).get('client') %}
     {%- set client = node_grains.get('ceph_backup').get('client') %}
       {%- if client.get('addresses') and client.get('addresses', []) is iterable %}

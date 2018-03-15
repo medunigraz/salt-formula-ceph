@@ -2,7 +2,7 @@
 
 {% set ceph_version = pillar.ceph.common.version %}
 
-{%- for pool_name, pool in setup.pool.iteritems() %}
+{%- for pool_name, pool in setup.pool.items() %}
 
 ceph_pool_create_{{ pool_name }}:
   cmd.run:
@@ -17,7 +17,7 @@ ceph_pool_option_{{ pool_name }}_pg_num_first:
   - unless: "ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool get {{ pool_name }} pg_num | grep 'pg_num: {{ pool.get('pg_num') }}'"
 {%- endif %}
 
-{%- for option_name, option_value in pool.iteritems() %}
+{%- for option_name, option_value in pool.items() %}
 
 {%- if option_name == 'application' and ceph_version not in ['kraken', 'jewel'] %}
 

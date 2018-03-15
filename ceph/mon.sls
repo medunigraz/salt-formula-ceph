@@ -57,13 +57,13 @@ populate_monmap:
   - require:
     - pkg: mon_packages
 
-{% for keyring_name, keyring in mon.get('keyring', {}).iteritems() %}
+{% for keyring_name, keyring in mon.get('keyring', {}).items() %}
 
 {%- if keyring_name == 'mon' and keyring.key is undefined %}
 
 cluster_secret_key:
   cmd.run:
-  - name: "ceph-authtool --create-keyring /var/lib/ceph/mon/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/keyring --gen-key -n mon. {%- for cap_name, cap in  keyring.caps.iteritems() %} --cap {{ cap_name }} '{{ cap }}' {%- endfor %}"
+  - name: "ceph-authtool --create-keyring /var/lib/ceph/mon/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/keyring --gen-key -n mon. {%- for cap_name, cap in  keyring.caps.items() %} --cap {{ cap_name }} '{{ cap }}' {%- endfor %}"
   - unless: "test -f /var/lib/ceph/mon/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/done"
   - require:
     - pkg: mon_packages

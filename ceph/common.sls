@@ -37,7 +37,7 @@ common_config:
 
 ceph_create_keyring_admin:
   cmd.run:
-  - name: "ceph-authtool --create-keyring {{ common.prefix_dir }}/etc/ceph/{{ common.get('cluster_name', 'ceph') }}.client.admin.keyring --gen-key -n client.admin {%- for cap_name, cap in  common.keyring.admin.caps.iteritems() %} --cap {{ cap_name }} '{{ cap }}' {%- endfor %}"
+  - name: "ceph-authtool --create-keyring {{ common.prefix_dir }}/etc/ceph/{{ common.get('cluster_name', 'ceph') }}.client.admin.keyring --gen-key -n client.admin {%- for cap_name, cap in  common.keyring.admin.caps.items() %} --cap {{ cap_name }} '{{ cap }}' {%- endfor %}"
   - unless: "test -f {{ common.prefix_dir }}/etc/ceph/{{ common.get('cluster_name', 'ceph') }}.client.admin.keyring"
   - require:
   {% if not common.get('container_mode', False) %}
@@ -47,7 +47,7 @@ ceph_create_keyring_admin:
 
 {%- endif %}
 
-{%- for node_name, node_grains in salt['mine.get']('ceph:common:keyring:admin', 'grains.items', 'pillar').iteritems() %}
+{%- for node_name, node_grains in salt['mine.get']('ceph:common:keyring:admin', 'grains.items', 'pillar').items() %}
 
 {%- if node_grains.ceph is defined and node_grains.ceph.ceph_keyring is defined and node_grains.ceph.ceph_keyring.admin is defined %}
 

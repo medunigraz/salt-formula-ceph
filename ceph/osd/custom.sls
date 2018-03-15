@@ -2,7 +2,7 @@
 
 {% set ceph_version = pillar.ceph.common.version %}
 
-{%- for backend_name, backend in osd.backend.iteritems() %}
+{%- for backend_name, backend in osd.backend.items() %}
 
 {%- for disk in backend.disks %}
 
@@ -10,7 +10,7 @@
 
 {% set dev = disk.dev %}
 
-{%- for disk_id, ceph_disk in salt['grains.get']('ceph:ceph_disk', {}).iteritems() %}
+{%- for disk_id, ceph_disk in salt['grains.get']('ceph:ceph_disk', {}).items() %}
 
 {%- if ceph_disk.get('dev') == dev %}
 

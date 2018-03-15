@@ -16,7 +16,7 @@ ceph_client_packages:
   - mode: 755
   - makedirs: True
 
-{%- for keyring_name, keyring in client.keyring.iteritems() %}
+{%- for keyring_name, keyring in client.keyring.items() %}
 
 {{ client.prefix_dir }}/etc/ceph/ceph.client.{{ keyring_name }}.keyring:
   file.managed:
@@ -40,7 +40,7 @@ ceph_client_packages:
 {%- endfor %}
 
 {%- set config = client.config %}
-{%- for keyring_name, keyring in client.keyring.iteritems() %}
+{%- for keyring_name, keyring in client.keyring.items() %}
 {%- load_yaml as config_fragment %}
 client.{{ keyring_name }}:
   keyring: /etc/ceph/ceph.client.{{ keyring_name }}.keyring

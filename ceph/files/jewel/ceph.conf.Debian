@@ -20,7 +20,7 @@ osd pool default pgp num = {{ common.pgp_num }}
 {%- endif %}
 
 ##Global key: value
-{%- for key_name, key in common.get('config', {}).get('global', {}).iteritems() %}
+{%- for key_name, key in common.get('config', {}).get('global', {}).items() %}
 
 {{ key_name }} = {{ key }}
 
@@ -28,12 +28,12 @@ osd pool default pgp num = {{ common.pgp_num }}
 
 
 ##Other sections key: value
-{%- for key_name, key in common.get('config', {}).iteritems() %}
+{%- for key_name, key in common.get('config', {}).items() %}
 
 {%- if key_name not in ['osd', 'mon', 'global'] %}
 [{{ key_name }}]
 
-{%- for value_name, value in key.iteritems() %}
+{%- for value_name, value in key.items() %}
 
 {{ value_name }} = {{ value }}
 
@@ -58,7 +58,7 @@ bluestore_block_wal_size = {{ osd.bluestore_block_wal_size }}
 {%- if pillar.ceph.mon is defined %}
 
 [mon]
-{%- for key, value in common.get('config', {}).get('mon', {}).iteritems() %}
+{%- for key, value in common.get('config', {}).get('mon', {}).items() %}
 {{ key }} = {{ value }}
 {%- endfor %}
 mon host = {%- for member in common.members %}{{ member.name }}{% if not loop.last %},{% endif %}{%- endfor %}
@@ -92,7 +92,7 @@ osd crush update on start = {{ osd.get('crush_update', 'true') }}
 osd journal size = {{ osd.journal_size }}
 {%- endif %}
 
-{%- for key, value in common.get('config', {}).get('osd', {}).iteritems() %}
+{%- for key, value in common.get('config', {}).get('osd', {}).items() %}
 {{ key }} = {{ value }}
 {%- endfor %}
 
