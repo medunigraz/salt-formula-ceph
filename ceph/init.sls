@@ -1,3 +1,4 @@
+{%- if pillar.ceph is defined %}
 include:
 {% if pillar.ceph.common is defined %}
 - ceph.common
@@ -21,3 +22,4 @@ include:
 {% if pillar.ceph.radosgw is defined %}
 - ceph.radosgw
 {% endif %}
+{%- endif %}
