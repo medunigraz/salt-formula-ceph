@@ -13,6 +13,15 @@ mon_packages:
   - template: jinja
   - require:
     - pkg: mon_packages
+    - file: /etc/ceph
+
+/etc/ceph/{{ common.get('cluster_name', 'ceph') }}.mon.{{ grains.host }}.keyring:
+  file.managed:
+  - source: salt://ceph/files/mon_keyring
+  - template: jinja
+  - require:
+    - pkg: mon_packages
+    - file: /etc/ceph
 
 generate_monmap:
   cmd.run:
@@ -23,18 +32,12 @@ generate_monmap:
 
 populate_monmap:
   cmd.run:
-  - name: "sudo -u ceph ceph-mon -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf --mkfs -i {{ grains.host }} --monmap /var/lib/ceph/{{ common.get('cluster_name', 'ceph') }}.monmap"
+  - name: "sudo -u ceph ceph-mon -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf --mkfs -i {{ grains.host }} --monmap /var/lib/ceph/{{ common.get('cluster_name', 'ceph') }}.monmap --keyring /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.mon.{{ grains.host }}.keyring"
   - unless: "test -f /var/lib/ceph/mon/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/kv_backend"
   - require:
     - pkg: mon_packages
     - cmd: generate_monmap
-
-/var/lib/ceph/mon/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/keyring:
-  file.managed:
-  - source: salt://ceph/files/mon_keyring
-  - template: jinja
-  - require:
-    - pkg: mon_packages
+    - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.mon.{{ grains.host }}.keyring
 
 /var/lib/ceph/mon/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/done:
   file.managed:
@@ -43,7 +46,6 @@ populate_monmap:
   - content: { }
   - require:
     - pkg: mon_packages
-    - file: /var/lib/ceph/mon/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/keyring
     - cmd: populate_monmap
 
 {%- if not grains.get('noservices', False) %}

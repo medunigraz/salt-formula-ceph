@@ -1,7 +1,14 @@
 {%- set keyring = salt['pillar.get']('ceph:mon:keyring:mon') %}
-
 [mon.]
     key = {{ keyring.key  }}
-    {%- for cap_name, cap in  keyring.caps.items() %}
+    {%- for cap_name, cap in keyring.caps.items() %}
     caps {{ cap_name }} = "{{ cap }}"
     {%- endfor %}
+
+{%- for name, keyring in salt['pillar.get']('ceph:common:keyring', {}).items() %}
+[client.{{ name }}]
+    key = {{ keyring.key }}
+    {%- for cap_name, cap in  keyring.get("caps", {}).items() %}
+    caps {{ cap_name }} = "{{ cap }}"
+    {%- endfor %}
+{%- endfor %}
