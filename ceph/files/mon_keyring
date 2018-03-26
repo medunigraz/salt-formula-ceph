@@ -1,21 +1,7 @@
-{%- for node_name, node_grains in salt['mine.get']('ceph:mon:keyring:mon', 'grains.items', 'pillar').items() %}
-
-{%- if node_grains.ceph is defined and node_grains.ceph.ceph_keyring is defined %}
-
-{%- for name, keyring in node_grains.ceph.get("ceph_keyring", {}).items() %}
-
-{%- if name == 'mon' %}
+{%- set keyring = salt['pillar.get']('ceph:mon:keyring:mon') %}
 
 [mon.]
     key = {{ keyring.key  }}
     {%- for cap_name, cap in  keyring.caps.items() %}
     caps {{ cap_name }} = "{{ cap }}"
     {%- endfor %}
-
-{%- endif %}
-
-{%- endfor %}
-
-{%- endif %}
-
-{%- endfor %}
