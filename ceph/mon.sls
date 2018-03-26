@@ -17,7 +17,7 @@ mon_packages:
 generate_monmap:
   cmd.run:
   - name: "monmaptool --create {%- for member in common.members %} --add {{ member.name }} {{ member.host }} {%- endfor %} --fsid {{ common.fsid }} /var/lib/ceph/{{ common.get('cluster_name', 'ceph') }}.monmap"
-  - unless: "test -f /tmp/monmap"
+  - unless: "test -f /var/lib/ceph/{{ common.get('cluster_name', 'ceph') }}.monmap"
   - require:
     - pkg: mon_packages
 
