@@ -2,10 +2,12 @@
 
 {%- for name, keyring in salt['pillar.get']('ceph:common:keyring', {}).items() %}
 
+{%- if name == 'admin' %}
 [client.{{ name }}]
     key = {{ keyring.key }}
     {%- for cap_name, cap in  keyring.get("caps", {}).items() %}
     caps {{ cap_name }} = "{{ cap }}"
     {%- endfor %}
+{%- endif %}
 
 {%- endfor %}
