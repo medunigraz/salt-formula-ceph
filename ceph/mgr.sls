@@ -9,13 +9,6 @@ mgr_packages:
   pkg.installed:
   - names: {{ mgr.pkgs }}
 
-/etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf:
-  file.managed:
-  - source: salt://ceph/files/{{ common.version }}/ceph.conf.{{ grains.os_family }}
-  - template: jinja
-  - require:
-    - pkg: mgr_packages
-
 /var/lib/ceph/mgr/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/:
   file.directory:
   - template: jinja
@@ -36,20 +29,16 @@ ceph_create_mgr_keyring_{{ grains.host }}:
   - require:
     - file: /var/lib/ceph/mgr/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/
 
-mgr_services:
+{%- if not grains.get('noservices') %}
+ceph-mgr@{{ grains.host }}:
   service.running:
     - enable: true
-    - names: [ceph-mgr@{{ grains.host }}]
     - watch:
       - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf
     - require:
       - pkg: mgr_packages
       - cmd: ceph_create_mgr_keyring_{{ grains.host }}
-    {%- if grains.get('noservices') %}
-    - onlyif: /bin/false
-    {%- endif %}
-
-{%- if common.version not in ['kraken', 'jewel'] %}
+{%- endif %}
 
 {%- if mgr.get('dashboard', {}).get('enabled', False) %}
 
@@ -83,8 +72,6 @@ disable_ceph_dashboard:
   - onlyif: "ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf mgr module ls | grep dashboard"
   - require:
     - file: /var/lib/ceph/mgr/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/
-
-{%- endif %}
 
 {%- endif %}
 

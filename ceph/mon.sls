@@ -1,19 +1,13 @@
 {%- from "ceph/map.jinja" import common, mon with context %}
 
+{%- if mon.get('enabled', False) %}
+
 include:
 - ceph.common
 
 mon_packages:
   pkg.installed:
   - names: {{ mon.pkgs }}
-
-/etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf:
-  file.managed:
-  - source: salt://ceph/files/{{ common.version }}/ceph.conf.{{ grains.os_family }}
-  - template: jinja
-  - require:
-    - pkg: mon_packages
-    - file: /etc/ceph
 
 /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.mon.{{ grains.host }}.keyring:
   file.managed:
@@ -57,4 +51,6 @@ ceph-mon@{{ grains.host }}:
   - require:
     - pkg: mon_packages
     - file: /var/lib/ceph/mon/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/done
+{%- endif %}
+
 {%- endif %}
