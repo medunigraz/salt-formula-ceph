@@ -11,6 +11,17 @@ ceph_osd_packages:
   - require:
     - pkg: ceph_osd_packages
 
+ceph_create_keyring_bootstrap-osd:
+  cmd.run:
+  - name: "ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf auth get-or-create client.bootstrap-osd mon 'allow profile bootstrap-osd' > /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.client.bootstrap-osd.keyring"
+  - unless: "test -f /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.client.boostrap-osd.keyring"
+
+ceph_import_keyring_bootstrap-osd:
+  cmd.wait:
+    - name: "ceph-authtool --create-keyring /var/lib/ceph/bootstrap-osd/{{ common.get('cluster_name', 'ceph') }}.keyring --import-keyring /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.client.bootstrap-osd.keyring"
+    - watch:
+      - cmd: ceph_create_keyring_bootstrap-osd
+
 {% set ceph_version = pillar.ceph.common.version %}
 
 {%- if osd.volumes is defined %}
@@ -21,7 +32,7 @@ ceph_osd_packages:
 
 zap_volume_{{ volume.data }}:
   cmd.run:
-  - name: "ceph-volume lvm zap {{ volume.data }}"
+  - name: "ceph-volume lvm zap {{ volume.data }} || true"
   - unless: "ceph-volume lvm list {{ volume.data }}"
   - require:
     - pkg: ceph_osd_packages
@@ -30,7 +41,7 @@ zap_volume_{{ volume.data }}:
 {%- if volume.db is defined %}
 zap_volume_{{ volume.data }}_db_{{ volume.db }}:
   cmd.run:
-  - name: "ceph-volume lvm zap {{ volume.db }}"
+  - name: "ceph-volume lvm zap {{ volume.db }} || true"
   - unless: "ceph-volume lvm list {{ volume.db }}"
   - require:
     - pkg: ceph_osd_packages
@@ -41,7 +52,7 @@ zap_volume_{{ volume.data }}_db_{{ volume.db }}:
 {%- if volume.wal is defined %}
 zap_volume_{{ volume.data }}_wal_{{ volume.wal }}:
   cmd.run:
-  - name: "ceph-volume lvm zap {{ volume.wal }}"
+  - name: "ceph-volume lvm zap {{ volume.wal }} || true"
   - unless: "ceph-volume lvm list {{ volume.wal }}"
   - require:
     - pkg: ceph_osd_packages
@@ -50,7 +61,6 @@ zap_volume_{{ volume.data }}_wal_{{ volume.wal }}:
 {%- endif %}
 
 {%- set cmd = [] %}
-{%- do cmd.append('--cluster ' + common.get('cluster_name', 'ceph')) %}
 {%- if volume.db is defined %}
   {%- do cmd.append('--block.db ' + volume.db) %}
 {%- endif %}
@@ -73,7 +83,7 @@ create_volume_{{ volume.data }}:
 {%- endif %}
     - pkg: ceph_osd_packages
     - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf
-    - cmd: ceph_keyring_bootstrap-osd
+    - cmd: ceph_import_keyring_bootstrap-osd
 
 
 {%- endif %}
