@@ -37,6 +37,13 @@ Debian:
 {%- endload %}
 {% set mds = salt['grains.filter_by'](mds_defaults, merge=salt['pillar.get']('ceph:mds')) %}
 
+{%- load_yaml as cephfs_defaults %}
+Debian:
+  pkgs:
+  - attr
+{%- endload %}
+{% set cephfs = salt['grains.filter_by'](cephfs_defaults, merge=salt['pillar.get']('ceph:cephfs')) %}
+
 {%- load_yaml as osd_defaults %}
 Debian:
   pkgs:

@@ -1,0 +1,12 @@
+{%- from "ceph/map.jinja" import common, cephfs with context %}
+[Unit]
+Description=Administrative CephFS for {{ cephfs.get('name', 'cephfs') }}
+
+[Mount]
+What={%- for member in common.members %}{{ member.host}}{%- if not loop.last %},{%- endif %}{%- endfor %}:/
+Where=/var/lib/ceph/cephfs/{{ common.get('cluster_name', 'ceph') }}/{{ cephfs.get('name', 'cephfs') }}
+Type=ceph
+Options=name=admin,secret={{ common.keyring.admin.key }}
+
+[Install]
+WantedBy=ceph.target

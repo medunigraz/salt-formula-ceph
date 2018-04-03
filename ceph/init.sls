@@ -16,6 +16,9 @@ include:
 {% if pillar.ceph.mds is defined %}
 - ceph.mds
 {% endif %}
+{% if pillar.ceph.cephfs is defined %}
+- ceph.cephfs
+{% endif %}
 {% if pillar.ceph.osd is defined %}
 - ceph.osd
 {% endif %}
