@@ -61,6 +61,7 @@ cephfs_mount:
   service.running:
     - name: var-lib-ceph-cephfs-{{ common.get('cluster_name', 'ceph') }}-{{ cephfs.get('name', 'cephfs') }}.mount
     - enable: True
+    - reload: False
     - requires:
       - file: /etc/systemd/system/var-lib-ceph-cephfs-{{ common.get('cluster_name', 'ceph') }}-{{ cephfs.get('name', 'cephfs') }}.mount
       - file: /var/lib/ceph/cephfs/{{ common.get('cluster_name', 'ceph') }}/{{ cephfs.get('name', 'cephfs') }}
