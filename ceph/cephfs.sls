@@ -102,6 +102,8 @@ cephfs_subpool_{{ subpool.pool }}_add:
     - group: root
     - mode: 700
     - makedirs: True
+    - requires:
+      - service: cephfs_mount
 
 # Assign subpool to directory
 cephfs_subpool_{{ subpool.pool }}_attr:
