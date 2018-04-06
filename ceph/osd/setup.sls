@@ -24,7 +24,7 @@ ceph_import_keyring_bootstrap-osd:
 
 {% set ceph_version = pillar.ceph.common.version %}
 
-{%- if osd.volumes is defined %}
+{%- if osd.get('volumes', []) is iterable %}
 
 {%- for volume in osd.volumes %}
 
