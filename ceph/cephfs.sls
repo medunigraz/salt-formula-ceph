@@ -106,8 +106,8 @@ cephfs_subpool_{{ subpool.pool }}_add:
 
 /var/lib/ceph/cephfs/{{ common.get('cluster_name', 'ceph') }}/{{ cephfs.get('name', 'cephfs') }}/{{ path }}:
   file.directory:
-    - user: {{ subpool.get('user', 'root') }}
-    - group: {{ subpool.get('group', 'root') }}
+    - user: {{ subpool.get('user', 'ceph') }}
+    - group: {{ subpool.get('group', 'ceph') }}
     - mode: {{ subpool.get('mode', '0700') }}
     - makedirs: True
     - requires:
