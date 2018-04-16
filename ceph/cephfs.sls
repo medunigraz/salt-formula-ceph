@@ -16,8 +16,12 @@ cephfs_pool_metadata:
 
 cephfs_pool_root:
   cmd.run:
-    - name: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool create {{ cephfs.get('name', 'cephfs') }}_{{ cephfs.root.pool }} {{ cephfs.root.pg_num }} {{ cephfs.root.get('type', 'erasure') }}
+    - name: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool create {{ cephfs.get('name', 'cephfs') }}_{{ cephfs.root.pool }} {{ cephfs.root.pg_num }} {{ cephfs.root.get('type', 'erasure') }}{%- if cephfs.root.profile is string %} {{ cephfs.root.profile }}{%- endif %}
     - unless: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool stats {{ cephfs.get('name', 'cephfs') }}_{{ cephfs.root.pool }}
+{%- if cephfs.root.profile is string %}
+    - require:
+      - cmd: erasure_code_profile_{{ cephfs.root.profile }}
+{%- endif %}
 
 cephfs_pool_root_quota:
   cmd.run:
@@ -70,8 +74,12 @@ cephfs_mount:
 {%- for path, subpool in cephfs.get('subpools', {}).items() %}
 cephfs_subpool_{{ subpool.pool }}_create:
   cmd.run:
-    - name: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool create {{ cephfs.get('name', 'cephfs') }}_{{ subpool.pool }} {{ subpool.pg_num }} {{ subpool.get('type', 'erasure') }}
+    - name: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool create {{ cephfs.get('name', 'cephfs') }}_{{ subpool.pool }} {{ subpool.pg_num }} {{ subpool.get('type', 'erasure') }}{%- if subpool.profile is string %} {{ subpool.profile }}{%- endif %}
     - unless: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool stats {{ cephfs.get('name', 'cephfs') }}_{{ subpool.pool }}
+{%- if subpool.profile is string %}
+    - require:
+      - cmd: erasure_code_profile_{{ subpool.profile }}
+{%- endif %}
 
 cephfs_subpool_{{ subpool.pool }}_quota:
   cmd.run:

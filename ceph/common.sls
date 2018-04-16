@@ -34,3 +34,17 @@ common_config:
   - require:
     - pkg: common_packages
     - file: common_config
+
+{%- if common.erasure_code_profiles is defined %}
+{%- for name, options in common.erasure_code_profiles.items() %}
+{%- if 'plugin' in options %}
+erasure_code_profile_{{ name }}:
+  cmd.run:
+  - name: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd erasure-code-profile set {{ name }} {%- for key, value in options.items() %}{{ key }}={{ value }}{%- if not loop.last %} {%- endif %}{%- endfor %}
+  - unless: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool erasure-code-profile get {{ name }}
+  - require:
+    - pkg: common_packages
+    - file: common_config
+{%- endif %}
+{%- endfor %}
+{%- endif %}
