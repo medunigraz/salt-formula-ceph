@@ -75,4 +75,13 @@ disable_ceph_dashboard:
 
 {%- endif %}
 
+{%- for module in mgr.get('modules', []) %}
+ceph_mgr_module_{{ module }}:
+  cmd.run:
+    - name: "ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf mgr module enable {{ module }}"
+    - unless: "ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf mgr module ls | grep {{ module }}"
+    - require_in:
+      - service: ceph-mgr@{{ grains.host }}
+{%- endfor %}
+
 {%- endif %}
