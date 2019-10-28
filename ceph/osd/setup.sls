@@ -85,7 +85,6 @@ create_volume_{{ volume.data }}:
     - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf
     - cmd: ceph_import_keyring_bootstrap-osd
 
-
 {%- endif %}
 
 {%- endfor %}

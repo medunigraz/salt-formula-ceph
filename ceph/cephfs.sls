@@ -71,57 +71,60 @@ cephfs_mount:
       - file: /var/lib/ceph/cephfs/{{ common.get('cluster_name', 'ceph') }}/{{ cephfs.get('name', 'cephfs') }}
       - cmd: cephfs_create_{{ cephfs.get('name', 'cephfs') }}
 
-{%- for path, subpool in cephfs.get('subpools', {}).items() %}
-cephfs_subpool_{{ subpool.pool }}_create:
+{%- for subpool, config in cephfs.get('subpools', {}).items() %}
+cephfs_subpool_{{ subpool }}_create:
   cmd.run:
-    - name: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool create {{ cephfs.get('name', 'cephfs') }}_{{ subpool.pool }} {{ subpool.pg_num }} {{ subpool.get('type', 'erasure') }}{%- if subpool.profile is string %} {{ subpool.profile }}{%- endif %}
-    - unless: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool stats {{ cephfs.get('name', 'cephfs') }}_{{ subpool.pool }}
-{%- if subpool.profile is string %}
+    - name: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool create {{ cephfs.get('name', 'cephfs') }}_{{ subpool }} {{ config.pg_num }} {{ config.get('type', 'erasure') }}{%- if config.profile is string %} {{ config.profile }}{%- endif %}
+    - unless: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool stats {{ cephfs.get('name', 'cephfs') }}_{{ subpool }}
+{%- if config.profile is string %}
     - require:
-      - cmd: erasure_code_profile_{{ subpool.profile }}
+      - cmd: erasure_code_profile_{{ config.profile }}
 {%- endif %}
 
-cephfs_subpool_{{ subpool.pool }}_quota:
+cephfs_subpool_{{ subpool }}_quota:
   cmd.run:
-    - name: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool set-quota {{ cephfs.get('name', 'cephfs') }}_{{ subpool.pool }} max_bytes {{ subpool.get('quota', 0) }}
-    - unless: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool get-quota {{ cephfs.get('name', 'cephfs') }}_{{ subpool.pool }}
+    - name: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool set-quota {{ cephfs.get('name', 'cephfs') }}_{{ subpool }} max_bytes {{ config.get('quota', 0) }}
+    - unless: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool get-quota {{ cephfs.get('name', 'cephfs') }}_{{ subpool }}
     - requires:
-      - cmd: cephfs_subpool_{{ subpool.pool }}_create
+      - cmd: cephfs_subpool_{{ subpool }}_create
 
-{%- if subpool.get('type', 'erasure') == 'erasure' %}
-cephfs_subpool_{{ subpool.pool }}_overwrites:
+{%- if config.get('type', 'erasure') == 'erasure' %}
+cephfs_subpool_{{ subpool }}_overwrites:
   cmd.run:
-    - name: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool set {{ cephfs.get('name', 'cephfs') }}_{{ subpool.pool }} allow_ec_overwrites true
+    - name: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool set {{ cephfs.get('name', 'cephfs') }}_{{ subpool }} allow_ec_overwrites true
     - require_in:
-      - cmd: cephfs_subpool_{{ subpool.pool }}_add
+      - cmd: cephfs_subpool_{{ subpool }}_add
 {%- endif %}
 
 # Add subpool to MDS
-cephfs_subpool_{{ subpool.pool }}_add:
+cephfs_subpool_{{ subpool }}_add:
   cmd.run:
-    - name: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf fs add_data_pool {{ cephfs.get('name', 'cephfs') }} {{ cephfs.get('name', 'cephfs') }}_{{ subpool.pool }}
-    - unless: "ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf fs ls |awk '/^name: {{ cephfs.get('name', 'cephfs') }},/ {print \\$5}' |grep {{ cephfs.get('name', 'cephfs') }}_{{ subpool.pool }}"
+    - name: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf fs add_data_pool {{ cephfs.get('name', 'cephfs') }} {{ cephfs.get('name', 'cephfs') }}_{{ subpool }}
+    - unless: "ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf fs ls |awk '/^name: {{ cephfs.get('name', 'cephfs') }},/ {print \\$5}' |grep {{ cephfs.get('name', 'cephfs') }}_{{ subpool }}"
     - require:
-      - cmd: cephfs_subpool_{{ subpool.pool }}_create
+      - cmd: cephfs_subpool_{{ subpool }}_create
 
+{%- for path in config.get('paths', [subpool]) %}
+# Create directory
 /var/lib/ceph/cephfs/{{ common.get('cluster_name', 'ceph') }}/{{ cephfs.get('name', 'cephfs') }}/{{ path }}:
   file.directory:
-    - user: {{ subpool.get('user', 'ceph') }}
-    - group: {{ subpool.get('group', 'ceph') }}
-    - mode: {{ subpool.get('mode', '0700') }}
+    - user: {{ config.get('user', 'ceph') }}
+    - group: {{ config.get('group', 'ceph') }}
+    - mode: {{ config.get('mode', '0700') }}
     - makedirs: True
     - requires:
       - service: cephfs_mount
 
 # Assign subpool to directory
-cephfs_subpool_{{ subpool.pool }}_attr:
+cephfs_subpool_{{ path }}_attr:
   cmd.run:
-    - name: setfattr -n ceph.dir.layout.pool -v {{ cephfs.get('name', 'cephfs') }}_{{subpool.pool }} /var/lib/ceph/cephfs/{{ common.get('cluster_name', 'ceph') }}/{{ cephfs.get('name', 'cephfs') }}/{{ path }}
-    - unless: getfattr -n ceph.dir.layout.pool /var/lib/ceph/cephfs/{{ common.get('cluster_name', 'ceph') }}/{{ cephfs.get('name', 'cephfs') }}/{{ path }} |grep {{ subpool.pool }}
+    - name: setfattr -n ceph.dir.layout.pool -v {{ cephfs.get('name', 'cephfs') }}_{{ subpool }} /var/lib/ceph/cephfs/{{ common.get('cluster_name', 'ceph') }}/{{ cephfs.get('name', 'cephfs') }}/{{ path }}
+    - unless: getfattr -n ceph.dir.layout.pool /var/lib/ceph/cephfs/{{ common.get('cluster_name', 'ceph') }}/{{ cephfs.get('name', 'cephfs') }}/{{ path }} |grep {{ subpool }}
     - require:
-      - cmd: cephfs_subpool_{{ subpool.pool }}_add
+      - cmd: cephfs_subpool_{{ subpool }}_add
       - service: cephfs_mount
       - file: /var/lib/ceph/cephfs/{{ common.get('cluster_name', 'ceph') }}/{{ cephfs.get('name', 'cephfs') }}/{{ path }}
+{%- endfor %}
 
 {%- endfor %}
 {%- endif %}
