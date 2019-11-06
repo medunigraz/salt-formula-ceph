@@ -104,13 +104,13 @@ cephfs_subpool_{{ subpool }}_add:
     - require:
       - cmd: cephfs_subpool_{{ subpool }}_create
 
-{%- for path in config.get('paths', [subpool]) %}
+{%- for path, config_path in config.get('paths').items() %}
 # Create directory
 /var/lib/ceph/cephfs/{{ common.get('cluster_name', 'ceph') }}/{{ cephfs.get('name', 'cephfs') }}/{{ path }}:
   file.directory:
-    - user: {{ config.get('user', 'ceph') }}
-    - group: {{ config.get('group', 'ceph') }}
-    - mode: {{ config.get('mode', '0700') }}
+    - user: {{ config_path.get('user', 'ceph') }}
+    - group: {{ config_path.get('group', 'ceph') }}
+    - mode: {{ config_path.get('mode', '0700') }}
     - makedirs: True
     - requires:
       - service: cephfs_mount
