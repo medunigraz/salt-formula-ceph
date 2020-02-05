@@ -5,7 +5,7 @@
 include:
 - ceph.common
 
-mon_packages:
+ceph_mon_packages:
   pkg.installed:
   - names: {{ mon.pkgs }}
 
@@ -14,23 +14,22 @@ mon_packages:
   - source: salt://ceph/files/mon_keyring
   - template: jinja
   - require:
-    - pkg: mon_packages
     - file: /etc/ceph
 
-generate_monmap:
+ceph_generate_monmap:
   cmd.run:
   - name: "monmaptool --create {%- for member in common.members %} --add {{ member.name }} {{ member.host }} {%- endfor %} --fsid {{ common.fsid }} /var/lib/ceph/{{ common.get('cluster_name', 'ceph') }}.monmap"
   - unless: "test -f /var/lib/ceph/{{ common.get('cluster_name', 'ceph') }}.monmap"
   - require:
-    - pkg: mon_packages
+    - pkg: ceph_mon_packages
 
-populate_monmap:
+ceph_populate_monmap:
   cmd.run:
   - name: "sudo -u ceph ceph-mon -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf --mkfs -i {{ grains.host }} --monmap /var/lib/ceph/{{ common.get('cluster_name', 'ceph') }}.monmap --keyring /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.mon.{{ grains.host }}.keyring"
   - unless: "test -f /var/lib/ceph/mon/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/kv_backend"
   - require:
-    - pkg: mon_packages
-    - cmd: generate_monmap
+    - pkg: ceph_mon_packages
+    - cmd: ceph_generate_monmap
     - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.mon.{{ grains.host }}.keyring
 
 /var/lib/ceph/mon/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/done:
@@ -39,8 +38,8 @@ populate_monmap:
   - group: ceph
   - content: { }
   - require:
-    - pkg: mon_packages
-    - cmd: populate_monmap
+    - pkg: ceph_mon_packages
+    - cmd: ceph_populate_monmap
 
 {%- if not grains.get('noservices', False) %}
 ceph-mon@{{ grains.host }}:
@@ -49,7 +48,7 @@ ceph-mon@{{ grains.host }}:
   - watch:
     - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf
   - require:
-    - pkg: mon_packages
+    - pkg: ceph_mon_packages
     - file: /var/lib/ceph/mon/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/done
 {%- endif %}
 

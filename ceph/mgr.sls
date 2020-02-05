@@ -5,7 +5,7 @@
 include:
 - ceph.common
 
-mgr_packages:
+ceph_mgr_packages:
   pkg.installed:
   - names: {{ mgr.pkgs }}
 
@@ -14,13 +14,6 @@ mgr_packages:
   - template: jinja
   - user: ceph
   - group: ceph
-  - require:
-    - pkg: mgr_packages
-
-reload_systemctl_daemon:
-  cmd.run:
-  - name: "systemctl daemon-reload"
-  - unless: "test -f /var/lib/ceph/mgr/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/keyring"
 
 ceph_create_mgr_keyring_{{ grains.host }}:
   cmd.run:
@@ -36,7 +29,7 @@ ceph-mgr@{{ grains.host }}:
     - watch:
       - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf
     - require:
-      - pkg: mgr_packages
+      - pkg: ceph_mgr_packages
       - cmd: ceph_create_mgr_keyring_{{ grains.host }}
 {%- endif %}
 

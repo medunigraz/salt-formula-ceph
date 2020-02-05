@@ -5,7 +5,7 @@
 include:
 - ceph.common
 
-mds_packages:
+ceph_mds_packages:
   pkg.installed:
   - names: {{ mds.pkgs }}
 
@@ -15,7 +15,7 @@ mds_packages:
   - user: ceph
   - group: ceph
   - require:
-    - pkg: mds_packages
+    - pkg: ceph_mds_packages
 
 ceph_create_mds_keyring_{{ grains.host }}:
   cmd.run:
@@ -31,8 +31,24 @@ ceph-mds@{{ grains.host }}:
     - watch:
       - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf
     - require:
-      - pkg: mds_packages
+      - pkg: ceph_mds_packages
       - cmd: ceph_create_mds_keyring_{{ grains.host }}
 {%- endif %}
 
+
+{%- if common.erasure_code_profiles is defined %}
+{%- for name, options in common.erasure_code_profiles.items() %}
+{%- if 'plugin' in options %}
+erasure_code_profile_{{ name }}:
+  cmd.run:
+  - name: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd erasure-code-profile set {{ name }} {% for key, value in options.items() %}{{ key }}={{ value }}{% if not loop.last %} {% endif %}{% endfor %}
+  - unless: ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf osd pool erasure-code-profile get {{ name }}
+  - require:
+    - pkg: ceph_common_packages
+    - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf
+    - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.client.admin.keyring
+    - service: ceph-mds@{{ grains.host }}
+{%- endif %}
+{%- endfor %}
+{%- endif %}
 {%- endif %}
