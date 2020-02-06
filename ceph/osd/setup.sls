@@ -25,8 +25,8 @@ ceph_import_keyring_bootstrap-osd:
 
 ceph_zap_volume_{{ volume.data }}:
   cmd.run:
-  - name: "ceph-volume lvm zap {{ volume.data }} || true"
-  - unless: "ceph-volume lvm list {{ volume.data }}"
+  - name: "ceph-volume --cluster {{ common.get('cluster_name', 'ceph') }} lvm zap {{ volume.data }} || true"
+  - unless: "ceph-volume --cluster {{ common.get('cluster_name', 'ceph') }} lvm list {{ volume.data }}"
   - require:
     - pkg: ceph_osd_packages
     - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf
@@ -34,8 +34,8 @@ ceph_zap_volume_{{ volume.data }}:
 {%- if volume.db is defined %}
 ceph_zap_volume_{{ volume.data }}_db_{{ volume.db }}:
   cmd.run:
-  - name: "ceph-volume lvm zap {{ volume.db }} || true"
-  - unless: "ceph-volume lvm list {{ volume.db }}"
+  - name: "ceph-volume --cluster {{ common.get('cluster_name', 'ceph') }} lvm zap {{ volume.db }} || true"
+  - unless: "ceph-volume --cluster {{ common.get('cluster_name', 'ceph') }} lvm list {{ volume.db }}"
   - require:
     - pkg: ceph_osd_packages
     - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf
@@ -45,8 +45,8 @@ ceph_zap_volume_{{ volume.data }}_db_{{ volume.db }}:
 {%- if volume.wal is defined %}
 ceph_zap_volume_{{ volume.data }}_wal_{{ volume.wal }}:
   cmd.run:
-  - name: "ceph-volume lvm zap {{ volume.wal }} || true"
-  - unless: "ceph-volume lvm list {{ volume.wal }}"
+  - name: "ceph-volume --cluster {{ common.get('cluster_name', 'ceph') }} lvm zap {{ volume.wal }} || true"
+  - unless: "ceph-volume --cluster {{ common.get('cluster_name', 'ceph') }} lvm list {{ volume.wal }}"
   - require:
     - pkg: ceph_osd_packages
     - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf
@@ -64,8 +64,8 @@ ceph_zap_volume_{{ volume.data }}_wal_{{ volume.wal }}:
 
 ceph_create_volume_{{ volume.data }}:
   cmd.run:
-  - name: "ceph-volume lvm create --bluestore {{ cmd|join(' ') }}"
-  - unless: "ceph-volume lvm list {{ volume.data }}"
+  - name: "ceph-volume --cluster {{ common.get('cluster_name', 'ceph') }} lvm create --bluestore {{ cmd|join(' ') }}"
+  - unless: "ceph-volume --cluster {{ common.get('cluster_name', 'ceph') }} lvm list {{ volume.data }}"
   - require:
     - cmd: ceph_zap_volume_{{ volume.data }}
 {%- if volume.db is defined %}
