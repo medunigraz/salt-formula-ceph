@@ -4,13 +4,6 @@ ceph_osd_packages:
   pkg.installed:
   - names: {{ osd.pkgs }}
 
-/etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf:
-  file.managed:
-  - source: salt://ceph/files/{{ common.version }}/ceph.conf.{{ grains.os_family }}
-  - template: jinja
-  - require:
-    - pkg: ceph_osd_packages
-
 ceph_create_keyring_bootstrap-osd:
   cmd.run:
   - name: "ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf auth get-or-create client.bootstrap-osd mon 'allow profile bootstrap-osd' > /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.client.bootstrap-osd.keyring"
