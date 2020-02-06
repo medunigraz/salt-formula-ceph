@@ -9,8 +9,5 @@ include:
 {%- if setup.get('crush') %}
 - ceph.setup.crush
 {%- endif %}
-{%- if common.get('keyring') %}
-- ceph.setup.keyring
-{%- endif %}
 
 {%- endif %}

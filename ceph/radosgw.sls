@@ -3,7 +3,6 @@
 
 include:
 - ceph.common
-- ceph.setup.keyring
 
 ceph_radosgw_packages:
   pkg.installed:
