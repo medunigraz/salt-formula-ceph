@@ -76,8 +76,6 @@ ceph_mgr_module_{{ module }}:
 {%- if not grains.get('noservices') %}
     - require:
       - service: ceph-mgr@{{ grains.host }}
-    - watch_in: 
-      - service: ceph-mgr@{{ grains.host }}
 {%- endif %}
 {%- endfor %}
 
