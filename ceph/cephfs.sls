@@ -46,7 +46,10 @@ cephfs_create_{{ cephfs.get('name', 'cephfs') }}:
       - cmd: cephfs_pool_metadata
       - cmd: cephfs_pool_root
 
-/etc/systemd/system/var-lib-ceph-cephfs-{{ common.get('cluster_name', 'ceph') }}-{{ cephfs.get('name', 'cephfs') }}.mount:
+{% set cluster_unit = common.get('cluster_name', 'ceph') | regex_replace('[^A-Za-z0-9_\/]', '\\\\\\\\x2d') | regex_replace('/', '') | regex_replace('/', '-') %}
+{% set fs_unit = cephfs.get('name', 'cephfs') | regex_replace('[^A-Za-z0-9_\/]', '\\\\\\\\x2d') | regex_replace('/', '') | regex_replace('/', '-') %}
+
+/etc/systemd/system/var-lib-ceph-cephfs-{{ cluster_unit }}-{{ fs_unit }}.mount:
   file.managed:
     - source: salt://ceph/files/cephfs.mount
     - user: root
@@ -67,7 +70,7 @@ cephfs_mount:
     - enable: True
     - reload: False
     - requires:
-      - file: /etc/systemd/system/var-lib-ceph-cephfs-{{ common.get('cluster_name', 'ceph') }}-{{ cephfs.get('name', 'cephfs') }}.mount
+      - file: /etc/systemd/system/var-lib-ceph-cephfs-{{ cluster_unit }}-{{ fs_unit }}.mount
       - file: /var/lib/ceph/cephfs/{{ common.get('cluster_name', 'ceph') }}/{{ cephfs.get('name', 'cephfs') }}
       - cmd: cephfs_create_{{ cephfs.get('name', 'cephfs') }}
 
