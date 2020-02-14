@@ -59,7 +59,7 @@ ceph_mon_msgr2:
     - name: "ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf mon enable-msgr2"
 {%- if not grains.get('noservices', False) %}
     - require:
-      - service ceph-mon@{{ grains.host }}
+      - service: ceph-mon@{{ grains.host }}
 {%- endif %}
 {%- endif %}
 
