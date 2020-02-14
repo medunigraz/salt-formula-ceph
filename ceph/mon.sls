@@ -70,7 +70,9 @@ ceph_create_keyring_{{ name }}:
     - pkg: ceph_common_packages
     - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf
     - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.client.admin.keyring
+{%- if not grains.get('noservices', False) %}
     - service: ceph-mon@{{ grains.host }}
+{%- endif %}
 
 {% endfor %}
 
@@ -85,7 +87,10 @@ erasure_code_profile_{{ name }}:
     - pkg: ceph_common_packages
     - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf
     - file: /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.client.admin.keyring
+{%- if not grains.get('noservices', False) %}
     - service: ceph-mon@{{ grains.host }}
+{%- endif %}
+
 {%- endif %}
 {%- endfor %}
 {%- endif %}
