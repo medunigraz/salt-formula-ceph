@@ -46,10 +46,9 @@ cephfs_create_{{ cephfs.get('name', 'cephfs') }}:
       - cmd: cephfs_pool_metadata
       - cmd: cephfs_pool_root
 
-{% set cluster_unit = common.get('cluster_name', 'ceph') | regex_replace('[^A-Za-z0-9_\/]', '\\\\\\\\x2d') | regex_replace('/', '') | regex_replace('/', '-') %}
-{% set fs_unit = cephfs.get('name', 'cephfs') | regex_replace('[^A-Za-z0-9_\/]', '\\\\\\\\x2d') | regex_replace('/', '') | regex_replace('/', '-') %}
+{% set unit = salt['cmd.run']('systemd-escape -p --suffix=mount /var/lib/ceph/cephfs/'+common.get('cluster_name', 'ceph')+'/'+cephfs.get('name', 'cephfs')) %}
 
-/etc/systemd/system/var-lib-ceph-cephfs-{{ cluster_unit }}-{{ fs_unit }}.mount:
+/etc/systemd/system/{{ unit }}:
   file.managed:
     - source: salt://ceph/files/cephfs.mount
     - user: root
@@ -66,11 +65,11 @@ cephfs_create_{{ cephfs.get('name', 'cephfs') }}:
 
 cephfs_mount:
   service.running:
-    - name: var-lib-ceph-cephfs-{{ common.get('cluster_name', 'ceph') }}-{{ cephfs.get('name', 'cephfs') }}.mount
+    - name: {{ unit }}
     - enable: True
     - reload: False
     - requires:
-      - file: /etc/systemd/system/var-lib-ceph-cephfs-{{ cluster_unit }}-{{ fs_unit }}.mount
+      - file: /etc/systemd/system/{{ unit }}
       - file: /var/lib/ceph/cephfs/{{ common.get('cluster_name', 'ceph') }}/{{ cephfs.get('name', 'cephfs') }}
       - cmd: cephfs_create_{{ cephfs.get('name', 'cephfs') }}
 
