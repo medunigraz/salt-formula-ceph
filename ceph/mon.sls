@@ -52,6 +52,14 @@ ceph-mon@{{ grains.host }}:
     - file: /var/lib/ceph/mon/{{ common.get('cluster_name', 'ceph') }}-{{ grains.host }}/done
 {%- endif %}
 
+ceph_mon_msgr2:
+  cmd.run:
+    - name: "ceph -c /etc/ceph/{{ common.get('cluster_name', 'ceph') }}.conf mon enable-msgr2"
+{%- if not grains.get('noservices', False) %}
+    - require:
+      - service ceph-mon@{{ grains.host }}
+{%- endif %}
+
 {% for name, keyring in common.get('keyring', {}).items() %}
 
 ceph_create_keyring_{{ name }}:
