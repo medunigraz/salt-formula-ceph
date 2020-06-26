@@ -1,7 +1,7 @@
 {%- from "ceph/map.jinja" import common, mon, osd, radosgw, mds with context %}
 [global]
 mon initial members = {%- for member in common.members %}{{ member.name }}{% if not loop.last %},{% endif %}{%- endfor %}
-mon host = {%- for member in common.members %}{{ member.host }}{% if not loop.last %},{% endif %}{%- endfor %}
+mon host = {%- for member in common.members %}{{ member.host }}:6789{% if not loop.last %},{% endif %}{%- endfor %}
 
 {%- if common.cluster_network is defined %}
 cluster network = {{ common.cluster_network }}
